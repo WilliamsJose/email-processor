@@ -1,0 +1,53 @@
+service: email-processor
+
+frameWorkVersion: '3'
+
+custom:
+  bucket: sesprocessorbucket
+  bucketRef: S3BucketSesprocessorbucket
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  tracing:
+    lambda: true 
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:*
+          Resource: "*"
+
+functions:
+  saveAttachment:
+    reservedConcurrency: 5
+    timeout: 10
+    memorySize: 512
+    handler: saveAttachment.handler
+    events:
+      - s3:
+          bucket: ${self:custom.bucket}
+          event: s3:ObjectCreated:*
+
+resources:
+  Resources:
+    S3EMailBucketPermissions:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: 
+          Ref: ${self:custom.bucketRef}
+        PolicyDocument:
+          Statement:
+            - Principal: 
+                Service: "ses.amazonaws.com"
+              Action:
+                - s3:PutObject
+              Effect: Allow
+              Sid: "AllowSESPuts"
+              Resource: 
+                Fn::Join: ['', ['arn:aws:s3:::', Ref: "${self:custom.bucketRef}", '/*'] ]
+              Condition:
+                StringEquals:
+                  "aws:Referer": { Ref: AWS::AccountId }
