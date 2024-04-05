@@ -21,11 +21,11 @@ provider:
           Resource: "*"
 
 functions:
-  saveAttachment:
+  processEmail:
     reservedConcurrency: 5
     timeout: 10
     memorySize: 512
-    handler: saveAttachment.handler
+    handler: processEmail.handler
     events:
       - s3:
           bucket: ${self:custom.bucket}
