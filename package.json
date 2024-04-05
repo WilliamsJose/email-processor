@@ -13,6 +13,7 @@
   "author": "will",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.1593.0",
     "mailparser": "^3.6.9"
   }
 }

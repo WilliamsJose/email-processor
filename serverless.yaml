@@ -1,3 +1,5 @@
+org: willjs
+app: email-processor
 service: email-processor
 
 frameworkVersion: '3'
