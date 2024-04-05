@@ -11,5 +11,8 @@
     "Lambda"
   ],
   "author": "will",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "mailparser": "^3.6.9"
+  }
 }

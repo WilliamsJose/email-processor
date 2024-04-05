@@ -1,14 +1,14 @@
 "use strict";
 
-import AWS from "aws-sdk";
+import { S3 } from "aws-sdk";
 import { simpleParser } from "mailparser";
 
-const s3 = new AWS.S3({
+const s3 = new S3({
   apiVersion: "2006-03-01",
   region: process.env.AWSREGION,
 });
 
-export const handler = async (event) => {
+export async function handler(event) {
   console.log("Received event:", JSON.stringify(event, null, 2));
 
   const record = event.Records[0];
@@ -33,4 +33,4 @@ export const handler = async (event) => {
     console.log(args, args.stack);
     return args;
   }
-};
+}

@@ -1,6 +1,6 @@
 service: email-processor
 
-frameWorkVersion: '3'
+frameworkVersion: '3'
 
 custom:
   bucket: sesprocessorbucket
@@ -22,7 +22,6 @@ provider:
 
 functions:
   processEmail:
-    reservedConcurrency: 5
     timeout: 10
     memorySize: 512
     handler: processEmail.handler
