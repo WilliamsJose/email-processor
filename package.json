@@ -1,0 +1,15 @@
+{
+  "name": "email-processor",
+  "version": "1.0.0",
+  "description": "receive email, store, process and return email.",
+  "keywords": [
+    "Email",
+    "SES",
+    "S3",
+    "Bucket",
+    "SQS",
+    "Lambda"
+  ],
+  "author": "will",
+  "license": "ISC"
+}
