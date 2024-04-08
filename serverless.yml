@@ -75,7 +75,7 @@ resources:
           Enabled: true
           TlsPolicy: Optional
           Recipients:
-            - '${file(./env.yml):PERSONAL_DOMAIN_NAME}.awsapps.com'
+            - ${file(./env.yml):TEST_DOMAIN}
             - ${file(./env.yml):PERSONAL_DOMAIN}
           Actions:
             - S3Action:
