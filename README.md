@@ -1,6 +1,14 @@
 # Email Processor
 
-This Serverless app should do FIFO:
+TODO: 
+- Integrate with Amazon Workmail to view emails and not only save on bucket.
+- Create SQS queue FIFO.
+- Get Attachments with processEmail lambda and send one SQS for each line.
+- Create a Database (PostgreSQL or DynamoDB).
+- Create a second lambda to read one SQS message and save line formatted into Database, if the last line, return an email with processing success.
+
+
+## This Serverless app should do:
 
 1. Receive email with attachment.
 2. Store attachment into S3 bucket.
