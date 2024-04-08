@@ -4,16 +4,17 @@ service: email-processor
 
 frameworkVersion: '3'
 
-custom:
-  bucket: sesprocessorbucket
-  bucketRef: S3BucketSesprocessorbucket
-
 provider:
   name: aws
   runtime: nodejs18.x
   region: us-east-1
   tracing:
     lambda: true 
+  s3:
+    bucketOne:
+      name: ${file(./env.yml):BUCKET_NAME}
+      versioningConfiguration: 
+        Status: Enabled
   iam:
     role:
       statements:
@@ -29,16 +30,19 @@ functions:
     handler: processEmail.handler
     events:
       - s3:
-          bucket: ${self:custom.bucket}
+          bucket: ${file(./env.yml):BUCKET_NAME}
           event: s3:ObjectCreated:*
+          rules:
+            - prefix: emails/
 
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html
 resources:
   Resources:
     S3EMailBucketPermissions:
       Type: AWS::S3::BucketPolicy
       Properties:
         Bucket: 
-          Ref: ${self:custom.bucketRef}
+          Ref: ${file(./env.yml):BUCKET_REF}
         PolicyDocument:
           Statement:
             - Principal: 
@@ -48,7 +52,32 @@ resources:
               Effect: Allow
               Sid: "AllowSESPuts"
               Resource: 
-                Fn::Join: ['', ['arn:aws:s3:::', Ref: "${self:custom.bucketRef}", '/*'] ]
+                Fn::Join: ['', ['arn:aws:s3:::', Ref: "${file(./env.yml):BUCKET_REF}", '/*'] ]
               Condition:
                 StringEquals:
                   "aws:Referer": { Ref: AWS::AccountId }
+            
+    SESReceiptRuleSet:
+      Type: AWS::SES::ReceiptRuleSet
+      Properties:
+        RuleSetName: myRuleSet
+
+    SESRule:
+      Type: AWS::SES::ReceiptRule
+      DependsOn: 
+        - SESReceiptRuleSet 
+        - S3EMailBucketPermissions
+      Properties:
+        RuleSetName: 
+          Ref: SESReceiptRuleSet
+        Rule:
+          Name: SaveEmailToS3
+          Enabled: true
+          TlsPolicy: Optional
+          Recipients:
+            - '${file(./env.yml):PERSONAL_DOMAIN_NAME}.awsapps.com'
+            - ${file(./env.yml):PERSONAL_DOMAIN}
+          Actions:
+            - S3Action:
+                BucketName: ${file(./env.yml):BUCKET_NAME}
+                ObjectKeyPrefix: emails/
