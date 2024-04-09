@@ -2,7 +2,7 @@ org: willjs
 app: email-processor
 service: email-processor
 
-frameworkVersion: '3'
+frameworkVersion: "3"
 
 provider:
   name: aws
@@ -22,10 +22,23 @@ provider:
           Action:
             - s3:*
           Resource: "*"
+  environment:
+    POSTGRESQL_HOST: ${self:custom.POSTGRESQL.HOST}
+    POSTGRESQL_PORT: ${self:custom.POSTGRESQL.PORT}
+
+custom:
+  DB_NAME: ${file(./env.yml):DB_NAME}
+  USERNAME: ${file(./env.yml):DB_USERNAME}
+  PASSWORD: ${file(./env.yml):DB_PASSWORD}
+  POSTGRESQL:
+    HOST:
+      Fn::GetAtt: [PostgreSqlRDSInstance, Endpoint.Address]
+    PORT:
+      Fn::GetAtt: [PostgreSqlRDSInstance, Endpoint.Port]
 
 plugins:
   - serverless-lift
-
+  
 functions:
   processEmail:
     timeout: 10
@@ -47,6 +60,18 @@ constructs:
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html
 resources:
   Resources:
+    PostgreSqlRDSInstance:
+      Type: AWS::RDS::DBInstance
+      Properties:
+        MasterUsername: ${self:custom.USERNAME}
+        MasterUserPassword: ${self:custom.PASSWORD}
+        AllocatedStorage: "20"
+        DBName: ${self:custom.DB_NAME}
+        DBInstanceClass: db.t3.micro
+        Engine: postgres
+        PubliclyAccessible: true
+        BackupRetentionPeriod: 1
+
     S3EMailBucketPermissions:
       Type: AWS::S3::BucketPolicy
       Properties:

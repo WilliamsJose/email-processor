@@ -17,7 +17,8 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.550.0",
-    "mailparser": "^3.6.9"
+    "mailparser": "^3.6.9",
+    "pg": "^8.11.5"
   },
   "devDependencies": {
     "serverless-lift": "^1.28.1"

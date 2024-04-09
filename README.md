@@ -1,10 +1,12 @@
 # Email Processor
 
 TODO: 
-- [ ] Create SQS queue FIFO.
+- [x] Create SQS queue FIFO.
 - [ ] Get Attachments with processEmail lambda and send one SQS for each line.
-- [ ] Create a Database (PostgreSQL or DynamoDB).
-- [ ] Create a second lambda to read one SQS message and save line formatted into Database, if the last line, return an email with processing success.
+- [x] Create a Database (PostgreSQL or DynamoDB).
+  - [x] PostgreSQL
+- [x] Create a second lambda to read one SQS message 
+  - [ ] and save line formatted into Database, if the last line, return an email with processing success.
 - [ ] Integrate with Amazon Workmail to view emails and not only save on bucket.
 
 
