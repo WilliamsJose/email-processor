@@ -10,11 +10,16 @@
     "SQS",
     "Lambda"
   ],
-  "repository": {"url": "https://github.com/WilliamsJose/email-processor.git"},
+  "repository": {
+    "url": "https://github.com/WilliamsJose/email-processor.git"
+  },
   "author": "will",
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.550.0",
     "mailparser": "^3.6.9"
+  },
+  "devDependencies": {
+    "serverless-lift": "^1.28.1"
   }
 }

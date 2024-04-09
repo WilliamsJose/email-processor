@@ -23,6 +23,9 @@ provider:
             - s3:*
           Resource: "*"
 
+plugins:
+  - serverless-lift
+
 functions:
   processEmail:
     timeout: 10
@@ -34,6 +37,12 @@ functions:
           event: s3:ObjectCreated:*
           rules:
             - prefix: emails/
+
+constructs:
+  queueFIFO:
+    type: queue
+    worker:
+      handler: processQueue.handler
 
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html
 resources:
