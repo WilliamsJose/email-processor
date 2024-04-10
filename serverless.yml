@@ -23,6 +23,8 @@ provider:
             - s3:*
           Resource: "*"
   environment:
+    QUEUE_URL: 
+      'Fn::GetAtt': [queueFIFO, QueueUrl]
     POSTGRESQL_HOST: ${self:custom.POSTGRESQL.HOST}
     POSTGRESQL_PORT: ${self:custom.POSTGRESQL.PORT}
 
@@ -60,6 +62,13 @@ constructs:
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html
 resources:
   Resources:
+    queueFIFO:
+      Type: AWS::SQS::Queue
+      Properties:
+        FifoQueue: true
+        ContentBasedDeduplication: true
+        DelaySeconds: 0
+
     PostgreSqlRDSInstance:
       Type: AWS::RDS::DBInstance
       Properties:
