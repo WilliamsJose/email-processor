@@ -2,7 +2,8 @@
 
 TODO: 
 - [x] Create SQS queue FIFO.
-- [ ] Get Attachments with processEmail lambda and send one SQS for each line.
+- [x] Get Attachments with processEmail lambda and send one SQS for each line.
+  - [ ] Deal with more than one Attachment per email
 - [x] Create a Database (PostgreSQL or DynamoDB).
   - [x] PostgreSQL
 - [x] Create a second lambda to read one SQS message 
