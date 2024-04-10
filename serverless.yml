@@ -2,7 +2,7 @@ org: willjs
 app: email-processor
 service: email-processor
 
-frameworkVersion: "3"
+frameworkVersion: '3'
 
 provider:
   name: aws
@@ -21,7 +21,7 @@ provider:
         - Effect: Allow
           Action:
             - s3:*
-          Resource: "*"
+          Resource: '*'
   environment:
     QUEUE_URL: 
       'Fn::GetAtt': [queueFIFO, QueueUrl]
@@ -74,7 +74,7 @@ resources:
       Properties:
         MasterUsername: ${self:custom.USERNAME}
         MasterUserPassword: ${self:custom.PASSWORD}
-        AllocatedStorage: "20"
+        AllocatedStorage: '20'
         DBName: ${self:custom.DB_NAME}
         DBInstanceClass: db.t3.micro
         Engine: postgres
@@ -89,16 +89,16 @@ resources:
         PolicyDocument:
           Statement:
             - Principal: 
-                Service: "ses.amazonaws.com"
+                Service: 'ses.amazonaws.com'
               Action:
                 - s3:PutObject
               Effect: Allow
-              Sid: "AllowSESPuts"
+              Sid: 'AllowSESPuts'
               Resource: 
-                Fn::Join: ['', ['arn:aws:s3:::', Ref: "${file(./env.yml):BUCKET_REF}", '/*'] ]
+                Fn::Join: ['', ['arn:aws:s3:::', Ref: '${file(./env.yml):BUCKET_REF}', '/*'] ]
               Condition:
                 StringEquals:
-                  "aws:Referer": { Ref: AWS::AccountId }
+                  'aws:Referer': { Ref: AWS::AccountId }
             
     SESReceiptRuleSet:
       Type: AWS::SES::ReceiptRuleSet
