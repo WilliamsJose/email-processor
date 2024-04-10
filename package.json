@@ -19,7 +19,8 @@
     "@aws-sdk/client-s3": "^3.552.0",
     "@aws-sdk/client-sqs": "^3.552.0",
     "mailparser": "^3.6.9",
-    "pg": "^8.11.5"
+    "pg": "^8.11.5",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "serverless-lift": "^1.28.1"

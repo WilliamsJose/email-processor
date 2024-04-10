@@ -6,10 +6,8 @@ frameworkVersion: '3'
 
 provider:
   name: aws
-  runtime: nodejs18.x
+  runtime: nodejs20.x
   region: us-east-1
-  tracing:
-    lambda: true 
   s3:
     bucketOne:
       name: ${file(./env.yml):BUCKET_NAME}
@@ -43,9 +41,11 @@ plugins:
   
 functions:
   processEmail:
-    timeout: 10
-    memorySize: 512
     handler: processEmail.handler
+    description: 'On email saved in s3 bucket, get attachments and send SQS message for each file line.'
+    timeout: 10
+    memorySize: 256
+    tracing: PassThrough
     events:
       - s3:
           bucket: ${file(./env.yml):BUCKET_NAME}
@@ -54,8 +54,13 @@ functions:
             - prefix: emails/
   processQueue:
     handler: processQueue.handler
+    description: 'Read one message and save into PostgreSQL.'
+    timeout: 10
+    memorySize: 256
+    tracing: PassThrough
     events:
       - sqs:
+          batchSize: 1
           arn:
             'Fn::GetAtt': [queueFIFO, Arn]
 
