@@ -52,12 +52,12 @@ functions:
           event: s3:ObjectCreated:*
           rules:
             - prefix: emails/
-
-constructs:
-  queueFIFO:
-    type: queue
-    worker:
-      handler: processQueue.handler
+  processQueue:
+    handler: processQueue.handler
+    events:
+      - sqs:
+          arn:
+            'Fn::GetAtt': [queueFIFO, Arn]
 
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html
 resources:
