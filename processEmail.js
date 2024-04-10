@@ -1,13 +1,19 @@
 "use strict";
 
-const AWS = require("@aws-sdk/client-s3");
+const { S3 } = require("@aws-sdk/client-s3");
+const { SQSClient, SendMessageCommand } = require("@aws-sdk/client-sqs");
 const simpleParser = require("mailparser").simpleParser;
 
-const s3 = new AWS.S3({
+const s3 = new S3({
   region: process.env.AWSREGION,
 });
 
+const sqs = new SQSClient();
+
 module.exports.handler = async (event) => {
+  let statusCode = 200;
+  let message;
+
   console.log("Region:", process.env.AWSREGION);
   console.log("Received event:", JSON.stringify(event, null, 2));
 
@@ -27,5 +33,35 @@ module.exports.handler = async (event) => {
   console.log("from:", email.from.text);
   console.log("attachments:", email.attachments);
 
-  return { status: "success" };
+  try {
+    const attachmentLines = email.attachments[0].content.toString().split("\n");
+    for (const line of attachmentLines) {
+      console.log("reading line");
+      await sqs.send(
+        new SendMessageCommand({
+          QueueUrl: process.env.QUEUE_URL,
+          MessageBody: line,
+          MessageAttributes: {
+            Created_At: {
+              DataType: "String",
+              StringValue: new Date().toISOString(),
+            },
+          },
+          MessageGroupId: record.s3.object.key,
+        })
+      );
+      console.log("Message sent.");
+    }
+  } catch (error) {
+    console.log(error);
+    message = error;
+    statusCode = 500;
+  }
+
+  return {
+    statusCode,
+    body: JSON.stringify({
+      message,
+    }),
+  };
 };
