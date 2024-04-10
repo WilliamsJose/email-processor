@@ -80,6 +80,22 @@ resources:
         Engine: postgres
         PubliclyAccessible: true
         BackupRetentionPeriod: 1
+     
+    QueueFifoSQSPolicy: 
+      Type: AWS::SQS::QueuePolicy
+      Properties: 
+        Queues: 
+          - !Ref queueFIFO
+        PolicyDocument: 
+          Statement: 
+            - Sid: Allow-Send-And-Receive-Message
+              Action: 
+                - 'SQS:SendMessage' 
+                - 'SQS:ReceiveMessage'
+              Effect: 'Allow'
+              Principal: 
+                AWS: '*'
+              Resource: '*'
 
     S3EMailBucketPermissions:
       Type: AWS::S3::BucketPolicy
