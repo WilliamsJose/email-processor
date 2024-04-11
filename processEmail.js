@@ -1,9 +1,12 @@
-"use strict";
+'use strict';
 
-const { S3 } = require("@aws-sdk/client-s3");
-const { SQSClient, SendMessageCommand } = require("@aws-sdk/client-sqs");
-const simpleParser = require("mailparser").simpleParser;
-const { v4: uuidv4 } = require("uuid");
+const { S3 } = require('@aws-sdk/client-s3');
+const { SQSClient, SendMessageCommand } = require('@aws-sdk/client-sqs');
+const simpleParser = require('mailparser').simpleParser;
+const { v4: uuidv4 } = require('uuid');
+const { once } = require('node:events');
+const readline = require('node:readline/promises');
+const { Readable } = require('node:stream');
 
 const s3 = new S3({
   region: process.env.AWSREGION,
@@ -11,60 +14,79 @@ const s3 = new S3({
 
 const sqs = new SQSClient();
 
-module.exports.handler = async (event) => {
-  let statusCode = 200;
-  let message = "All messages sent.";
+const processLine = async (line, msgGroupId) => {
+  console.log('Processing line:', line);
 
-  console.log("Region:", process.env.AWSREGION);
-  console.log("Received event:", JSON.stringify(event, null, 2));
+  const MessageDeduplicationId = uuidv4();
 
+  const messagePromise = sqs.send(
+    new SendMessageCommand({
+      QueueUrl: process.env.QUEUE_URL,
+      MessageBody: line,
+      MessageAttributes: {
+        Created_At: {
+          DataType: 'String',
+          StringValue: new Date().toISOString(),
+        },
+      },
+      MessageGroupId: msgGroupId,
+      MessageDeduplicationId,
+    })
+  );
+
+  return messagePromise;
+};
+
+module.exports.handler = async event => {
   const record = event.Records[0];
-
+  let statusCode = 200;
+  let message;
   const request = {
     Bucket: record.s3.bucket.name,
     Key: record.s3.object.key,
   };
+  const batchSize = 500;
+  let promises = [];
+  let totalProcessedLines = 0;
 
   const data = await s3.getObject(request);
   const email = await simpleParser(data.Body);
 
-  console.log("date:", email.date);
-  console.log("subject:", email.subject);
-  console.log("body:", email.text);
-  console.log("from:", email.from.text);
-  console.log("attachments:", email.attachments);
+  console.log('attachments:', email.attachments);
 
-  try {
-    // TODO change to streams
-    const attachmentLines = email.attachments[0].content.toString().split("\n");
-    for (const line of attachmentLines) {
-      const lineContent = line.trim();
-      const MessageDeduplicationId = uuidv4();
-      console.log("reading line");
-      if (lineContent !== "") {
-        await sqs.send(
-          new SendMessageCommand({
-            QueueUrl: process.env.QUEUE_URL,
-            MessageBody: lineContent,
-            MessageAttributes: {
-              Created_At: {
-                DataType: "String",
-                StringValue: new Date().toISOString(),
-              },
-            },
-            MessageGroupId: record.s3.object.key,
-            MessageDeduplicationId,
-          })
-        );
-        console.log(`Message sent: ${lineContent}`);
+  const buffer = Buffer.from(email.attachments[0].content);
+
+  const stream = new Readable();
+  stream.push(buffer);
+  stream.push(null);
+
+  const reader = readline.createInterface({
+    input: stream,
+    terminal: false,
+  });
+
+  reader.on('line', async chunk => {
+    const trimmedLine = chunk.trim();
+    if (trimmedLine !== '') {
+      promises.push(processLine(trimmedLine, record.s3.object.key));
+      totalProcessedLines++;
+
+      if (promises.length >= batchSize) {
+        await Promise.all(promises);
+        promises = [];
       }
     }
-    console.log(message);
-  } catch (error) {
-    console.log(error);
-    message = error;
-    statusCode = 500;
+  });
+
+  await once(reader, 'close');
+
+  if (promises.length > 0) {
+    await Promise.all(promises);
+    promises = null;
   }
+
+  message = 'File processed with total lines: ' + totalProcessedLines;
+  console.log(message);
 
   return {
     statusCode,
