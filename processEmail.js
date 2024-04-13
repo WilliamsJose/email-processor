@@ -19,7 +19,7 @@ const processLine = async (line, msgGroupId) => {
 
   const MessageDeduplicationId = uuidv4();
 
-  const messagePromise = sqs.send(
+  const messagePromise = await sqs.send(
     new SendMessageCommand({
       QueueUrl: process.env.QUEUE_URL,
       MessageBody: line,
@@ -33,7 +33,7 @@ const processLine = async (line, msgGroupId) => {
       MessageDeduplicationId,
     })
   );
-
+  console.log('message sent.', messagePromise);
   return messagePromise;
 };
 
@@ -45,8 +45,6 @@ module.exports.handler = async event => {
     Bucket: record.s3.bucket.name,
     Key: record.s3.object.key,
   };
-  const batchSize = 500;
-  let promises = [];
   let totalProcessedLines = 0;
 
   const data = await s3.getObject(request);
@@ -65,25 +63,17 @@ module.exports.handler = async event => {
     terminal: false,
   });
 
-  reader.on('line', async chunk => {
-    const trimmedLine = chunk.trim();
-    if (trimmedLine !== '') {
-      promises.push(processLine(trimmedLine, record.s3.object.key));
-      totalProcessedLines++;
-
-      if (promises.length >= batchSize) {
-        await Promise.all(promises);
-        promises = [];
+  const start = async () => {
+    for await (const line of reader) {
+      const trimmedLine = line.trim();
+      if (trimmedLine !== '') {
+        await processLine(trimmedLine, record.s3.object.key);
+        totalProcessedLines++;
       }
     }
-  });
+  };
 
-  await once(reader, 'close');
-
-  if (promises.length > 0) {
-    await Promise.all(promises);
-    promises = null;
-  }
+  await start();
 
   message = 'File processed with total lines: ' + totalProcessedLines;
   console.log(message);
