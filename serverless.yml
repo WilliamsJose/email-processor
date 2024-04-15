@@ -11,7 +11,7 @@ provider:
   s3:
     bucketOne:
       name: ${file(./env.yml):BUCKET_NAME}
-      versioningConfiguration: 
+      versioningConfiguration:
         Status: Enabled
   iam:
     role:
@@ -21,15 +21,18 @@ provider:
             - s3:*
           Resource: '*'
   environment:
-    QUEUE_URL: 
+    DB_NAME: ${self:custom.DB_NAME}
+    DB_USERNAME: ${self:custom.DB_USERNAME}
+    DB_PASSWORD: ${self:custom.DB_PASSWORD}
+    QUEUE_URL:
       'Fn::GetAtt': [queueFIFO, QueueUrl]
     POSTGRESQL_HOST: ${self:custom.POSTGRESQL.HOST}
     POSTGRESQL_PORT: ${self:custom.POSTGRESQL.PORT}
 
 custom:
   DB_NAME: ${file(./env.yml):DB_NAME}
-  USERNAME: ${file(./env.yml):DB_USERNAME}
-  PASSWORD: ${file(./env.yml):DB_PASSWORD}
+  DB_USERNAME: ${file(./env.yml):DB_USERNAME}
+  DB_PASSWORD: ${file(./env.yml):DB_PASSWORD}
   POSTGRESQL:
     HOST:
       Fn::GetAtt: [PostgreSqlRDSInstance, Endpoint.Address]
@@ -38,7 +41,7 @@ custom:
 
 plugins:
   - serverless-lift
-  
+
 functions:
   processEmail:
     handler: processEmail.handler
@@ -77,50 +80,58 @@ resources:
     PostgreSqlRDSInstance:
       Type: AWS::RDS::DBInstance
       Properties:
-        MasterUsername: ${self:custom.USERNAME}
-        MasterUserPassword: ${self:custom.PASSWORD}
+        MasterUsername: ${self:custom.DB_USERNAME}
+        MasterUserPassword: ${self:custom.DB_PASSWORD}
         AllocatedStorage: '20'
         DBName: ${self:custom.DB_NAME}
         DBInstanceClass: db.t3.micro
         Engine: postgres
         PubliclyAccessible: true
         BackupRetentionPeriod: 1
-     
-    QueueFifoSQSPolicy: 
+
+    QueueFifoSQSPolicy:
       Type: AWS::SQS::QueuePolicy
-      Properties: 
-        Queues: 
+      Properties:
+        Queues:
           - !Ref queueFIFO
-        PolicyDocument: 
-          Statement: 
+        PolicyDocument:
+          Statement:
             - Sid: Allow-Send-And-Receive-Message
-              Action: 
-                - 'SQS:SendMessage' 
+              Action:
+                - 'SQS:SendMessage'
                 - 'SQS:ReceiveMessage'
               Effect: 'Allow'
-              Principal: 
+              Principal:
                 AWS: '*'
               Resource: '*'
 
     S3EMailBucketPermissions:
       Type: AWS::S3::BucketPolicy
       Properties:
-        Bucket: 
+        Bucket:
           Ref: ${file(./env.yml):BUCKET_REF}
         PolicyDocument:
           Statement:
-            - Principal: 
+            - Principal:
                 Service: 'ses.amazonaws.com'
               Action:
                 - s3:PutObject
               Effect: Allow
               Sid: 'AllowSESPuts'
-              Resource: 
-                Fn::Join: ['', ['arn:aws:s3:::', Ref: '${file(./env.yml):BUCKET_REF}', '/*'] ]
+              Resource:
+                Fn::Join:
+                  [
+                    '',
+                    [
+                      'arn:aws:s3:::',
+                      Ref: '${file(./env.yml):BUCKET_REF}',
+                      '/*',
+                    ],
+                  ]
               Condition:
                 StringEquals:
                   'aws:Referer': { Ref: AWS::AccountId }
-            
+
     SESReceiptRuleSet:
       Type: AWS::SES::ReceiptRuleSet
       Properties:
@@ -128,11 +139,11 @@ resources:
 
     SESRule:
       Type: AWS::SES::ReceiptRule
-      DependsOn: 
-        - SESReceiptRuleSet 
+      DependsOn:
+        - SESReceiptRuleSet
         - S3EMailBucketPermissions
       Properties:
-        RuleSetName: 
+        RuleSetName:
           Ref: SESReceiptRuleSet
         Rule:
           Name: SaveEmailToS3
