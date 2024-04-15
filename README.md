@@ -37,8 +37,8 @@ TODO:
 
 1. Create and validate Domain identity in SES.
 2. Create and validate Email identity in SES (You can use gmail).
-3. Configure [Amazon MX record](https://docs.aws.amazon.com/ses/latest/dg/receiving-email-mx-record.html) on your domain to receive e-mail (edit old existing MX, or set lowest priority for new).
-4. After last step, all emails will be sent to amazon and not to your existing one, then will you need to configure an forwarding.
+3. Configure [Amazon MX record](https://docs.aws.amazon.com/ses/latest/dg/receiving-email-mx-record.html) on your domain to receive e-mail (edit old existing MX, or set lowest priority value for new).
+4. After last step, all emails will be sent to amazon and not to your existing one, then you will need to configure an forwarding.
 
 ### Project Setup
 
