@@ -89,6 +89,13 @@ resources:
         PubliclyAccessible: true
         BackupRetentionPeriod: 1
 
+    RDSSecurityGroup:
+      Type: AWS::RDS::DBSecurityGroup
+      Properties:
+        GroupDescription: Security Group for RDS DB
+        DBSecurityGroupIngress:
+          - CIDRIP: 0.0.0.0/0
+
     QueueFifoSQSPolicy:
       Type: AWS::SQS::QueuePolicy
       Properties:
