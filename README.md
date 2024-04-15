@@ -9,7 +9,6 @@ TODO:
   - [x] PostgreSQL
 - [x] Create a second lambda to read one SQS message
   - [ ] and save line formatted into Database, if the last line, return an email with processing success.
-- [ ] Integrate with Amazon Workmail to view emails and not only save on bucket.
 
 ## This Serverless app should do:
 
