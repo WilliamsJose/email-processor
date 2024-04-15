@@ -1,19 +1,43 @@
-"use strict";
+'use strict';
 
-const { Client } = require("pg");
+const { Client } = require('pg');
 
 const client = new Client({
-  user: "seu_usuario",
+  user: process.env.DB_USERNAME,
   host: process.env.POSTGRESQL_HOST,
-  database: "seu_banco_de_dados",
-  password: "sua_senha",
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
   port: process.env.POSTGRESQL_PORT,
 });
 
-module.exports.handler = async (event) => {
+// const createTableIfNotExists = async () => {
+//   const queryText = `
+//   CREATE TABLE IF NOT EXISTS pipou (
+//     id SMALLSERIAL,
+//     name varchar(45) NOT NULL,
+//     description varchar(255),
+//     PRIMARY KEY (name)
+//   )`;
+//   return await client.query(queryText);
+// };
+
+module.exports.handler = async event => {
+  const connection = await client.connect();
+  console.log('Connection:', connection);
+
+  // const table = await createTableIfNotExists();
+  // console.log('Table:', table);
+
   const record = event.Records[0];
+  const [name, description] = record.body.split(',').map(str => str.trim());
 
-  console.log("record:", record);
+  const queryText =
+    'INSERT INTO pipou(name, description) VALUES ($1, $2) RETURNING *';
+  const queryValue = [name, description];
 
-  return { status: "success" };
+  console.log(`Saving ${name} with description: ${description}...`);
+  const result = await client.query(queryText, queryValue);
+  console.log('saving result:', result);
+
+  return { status: 'success', result };
 };
