@@ -2,7 +2,7 @@
 
 const { Client } = require('pg');
 
-const createTableIfNotExists = async () => {
+const createTableIfNotExists = async client => {
   const queryText = `
   CREATE TABLE IF NOT EXISTS pipou (
     id SMALLSERIAL,
@@ -25,7 +25,7 @@ module.exports.handler = async event => {
   const connection = await client.connect();
   console.log('Connection:', connection);
 
-  const table = await createTableIfNotExists();
+  const table = await createTableIfNotExists(client);
   console.log('Table:', table);
 
   const record = event.Records[0];
@@ -38,6 +38,8 @@ module.exports.handler = async event => {
   console.log(`Saving ${name} with description: ${description}...`);
   const result = await client.query(queryText, queryValue);
   console.log('saving result:', result);
+
+  await client.end();
 
   return { status: 'success', result };
 };

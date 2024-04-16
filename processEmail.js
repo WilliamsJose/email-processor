@@ -52,6 +52,14 @@ module.exports.handler = async event => {
 
   console.log('attachments:', email.attachments);
 
+  if (email.attachments.length === 0) {
+    console.log('No attachments found.');
+    return {
+      statusCode,
+      body: 'No attachments found.',
+    };
+  }
+
   const buffer = Buffer.from(email.attachments[0].content);
 
   const stream = new Readable();
