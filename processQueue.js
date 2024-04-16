@@ -2,31 +2,31 @@
 
 const { Client } = require('pg');
 
-const client = new Client({
-  user: process.env.DB_USERNAME,
-  host: process.env.POSTGRESQL_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.POSTGRESQL_PORT,
-});
-
-// const createTableIfNotExists = async () => {
-//   const queryText = `
-//   CREATE TABLE IF NOT EXISTS pipou (
-//     id SMALLSERIAL,
-//     name varchar(45) NOT NULL,
-//     description varchar(255),
-//     PRIMARY KEY (name)
-//   )`;
-//   return await client.query(queryText);
-// };
+const createTableIfNotExists = async () => {
+  const queryText = `
+  CREATE TABLE IF NOT EXISTS pipou (
+    id SMALLSERIAL,
+    name varchar(45) NOT NULL,
+    description varchar(255),
+    PRIMARY KEY (name)
+  )`;
+  return await client.query(queryText);
+};
 
 module.exports.handler = async event => {
+  const client = new Client({
+    user: process.env.DB_USERNAME,
+    host: process.env.POSTGRESQL_HOST,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD,
+    port: process.env.POSTGRESQL_PORT,
+  });
+
   const connection = await client.connect();
   console.log('Connection:', connection);
 
-  // const table = await createTableIfNotExists();
-  // console.log('Table:', table);
+  const table = await createTableIfNotExists();
+  console.log('Table:', table);
 
   const record = event.Records[0];
   const [name, description] = record.body.split(',').map(str => str.trim());
