@@ -88,6 +88,8 @@ resources:
         Engine: postgres
         PubliclyAccessible: true
         BackupRetentionPeriod: 1
+        DBSecurityGroups:
+          - Ref: RDSSecurityGroup
 
     RDSSecurityGroup:
       Type: AWS::RDS::DBSecurityGroup
