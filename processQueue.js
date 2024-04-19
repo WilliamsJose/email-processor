@@ -14,16 +14,29 @@ const createTableIfNotExists = async client => {
 };
 
 module.exports.handler = async event => {
+  let result = '';
+  const dbUser = process.env.DB_USERNAME;
+  const dbPass = process.env.DB_PASSWORD;
+  const dbName = process.env.DB_NAME;
+  const dbHost = process.env.POSTGRESQL_HOST;
+  const dbPort = +process.env.POSTGRESQL_PORT;
+
   const client = new Client({
-    user: process.env.DB_USERNAME,
-    host: process.env.POSTGRESQL_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
-    port: process.env.POSTGRESQL_PORT,
+    user: dbUser,
+    host: dbHost,
+    database: dbName,
+    password: dbPass,
+    port: dbPort,
+    ssl: { rejectUnauthorized: false },
   });
 
+  client.on('error', err => {
+    console.error('Error on pg client:', err.stack);
+  });
+
+  console.log('Connecting to database...');
   const connection = await client.connect();
-  console.log('Connection:', connection);
+  console.log('Connected:', connection);
 
   const table = await createTableIfNotExists(client);
   console.log('Table:', table);
@@ -36,8 +49,8 @@ module.exports.handler = async event => {
   const queryValue = [name, description];
 
   console.log(`Saving ${name} with description: ${description}...`);
-  const result = await client.query(queryText, queryValue);
-  console.log('saving result:', result);
+  result = await client.query(queryText, queryValue);
+  console.log('Saved:', result);
 
   await client.end();
 

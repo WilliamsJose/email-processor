@@ -1,8 +1,8 @@
 org: willjs
 app: email-processor
 service: email-processor
-
 frameworkVersion: '3'
+useDotenv: true
 
 provider:
   name: aws
@@ -19,6 +19,14 @@ provider:
         - Effect: Allow
           Action:
             - s3:*
+          Resource: '*'
+        - Effect: Allow
+          Action:
+            - sts:AssumeRole
+          Resource: '*'
+        - Effect: Allow
+          Action:
+            - ec2:CreateNetworkInterface
           Resource: '*'
 
 custom:
@@ -89,6 +97,7 @@ resources:
         Engine: postgres
         PubliclyAccessible: true
         BackupRetentionPeriod: 1
+        StorageEncrypted: true
         DBSecurityGroups:
           - Ref: RDSSecurityGroup
 
@@ -97,7 +106,7 @@ resources:
       Properties:
         GroupDescription: Security Group for RDS DB
         DBSecurityGroupIngress:
-          - CIDRIP: 0.0.0.0/0
+          - CIDRIP: '0.0.0.0/0'
 
     QueueFifoSQSPolicy:
       Type: AWS::SQS::QueuePolicy
