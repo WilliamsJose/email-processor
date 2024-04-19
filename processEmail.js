@@ -4,7 +4,6 @@ const { S3 } = require('@aws-sdk/client-s3');
 const { SQSClient, SendMessageCommand } = require('@aws-sdk/client-sqs');
 const simpleParser = require('mailparser').simpleParser;
 const { v4: uuidv4 } = require('uuid');
-const { once } = require('node:events');
 const readline = require('node:readline/promises');
 const { Readable } = require('node:stream');
 
