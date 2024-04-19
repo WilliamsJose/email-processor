@@ -4,6 +4,7 @@ service: email-processor
 frameworkVersion: '3'
 useDotenv: true
 
+# TODO improve security and limit actions.
 provider:
   name: aws
   runtime: nodejs20.x

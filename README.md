@@ -8,7 +8,8 @@ TODO:
 - [x] Create a Database (PostgreSQL or DynamoDB).
   - [x] PostgreSQL
 - [x] Create a second lambda to read one SQS message
-  - [ ] and save line formatted into Database, if the last line, return an email with processing success.
+  - [x] and save line formatted into Database,
+  - [ ] if the last line, return an email with processing success.
 
 ## This Serverless app should do:
 
@@ -44,7 +45,7 @@ Now we can go to project and make some changes on env file.
 
 1. First change _env.example.yml_ to _env.yml_.
 2. Set _BucketName_, _BucketRef_ and your aws domain on _TEST_DOMAIN_
-3. We don't have a external domain yet, so you can repeat test domain on _PERSONAL_DOMAIN_.
+3. If you don't have a external domain yet, you can repeat test domain on _PERSONAL_DOMAIN_.
 4. Run the code
 
 ```bash
