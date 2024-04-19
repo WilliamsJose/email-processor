@@ -52,7 +52,7 @@ Now we can go to project and make some changes on env file.
 sls deploy
 ```
 
-1. Go to Amazon SES in _Email Receiving_ and activate the _myRuleSet_ created by definition on serverless.yml.
+1. Go to Amazon SES in _Email Receiving_ and activate the _myRuleSet_ created by definition on serverless.yml. or execute `aws ses set-active-receipt-rule-set --rule-set-name myRuleSet`
 2. Send an email to your Amazon Workmail (or anything@yourdomain.com if using personal domain) created earlier and view the email content in logs with:
 
 ```bash

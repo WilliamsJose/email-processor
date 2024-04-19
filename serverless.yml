@@ -37,6 +37,8 @@ custom:
   DB_NAME: ${file(./env.yml):DB_NAME}
   DB_USERNAME: ${file(./env.yml):DB_USERNAME}
   DB_PASSWORD: ${file(./env.yml):DB_PASSWORD}
+  DLQ_URL:
+    Fn::GetAtt: [dlqFIFO, QueueUrl]
   POSTGRESQL:
     HOST:
       Fn::GetAtt: [PostgreSqlRDSInstance, Endpoint.Address]
@@ -71,6 +73,7 @@ functions:
           arn:
             Fn::GetAtt: [queueFIFO, Arn]
     environment:
+      DLQ_URL: ${self:custom.DLQ_URL}
       DB_NAME: ${self:custom.DB_NAME}
       DB_USERNAME: ${self:custom.DB_USERNAME}
       DB_PASSWORD: ${self:custom.DB_PASSWORD}
@@ -82,6 +85,7 @@ resources:
   Resources:
     queueFIFO:
       Type: AWS::SQS::Queue
+      DeletionPolicy: Delete
       Properties:
         FifoQueue: true
         ContentBasedDeduplication: true
@@ -101,6 +105,7 @@ resources:
 
     PostgreSqlRDSInstance:
       Type: AWS::RDS::DBInstance
+      DeletionPolicy: Delete
       Properties:
         MasterUsername: ${self:custom.DB_USERNAME}
         MasterUserPassword: ${self:custom.DB_PASSWORD}
@@ -116,6 +121,7 @@ resources:
 
     RDSSecurityGroup:
       Type: AWS::RDS::DBSecurityGroup
+      DeletionPolicy: Delete
       Properties:
         GroupDescription: Security Group for RDS DB
         DBSecurityGroupIngress:
@@ -123,6 +129,7 @@ resources:
 
     QueueFifoSQSPolicy:
       Type: AWS::SQS::QueuePolicy
+      DeletionPolicy: Delete
       Properties:
         Queues:
           - Ref: queueFIFO
@@ -139,6 +146,7 @@ resources:
 
     S3EMailBucketPermissions:
       Type: AWS::S3::BucketPolicy
+      DeletionPolicy: Delete
       Properties:
         Bucket:
           Ref: ${file(./env.yml):BUCKET_REF}
@@ -166,11 +174,13 @@ resources:
 
     SESReceiptRuleSet:
       Type: AWS::SES::ReceiptRuleSet
+      DeletionPolicy: Delete
       Properties:
         RuleSetName: myRuleSet
 
     SESRule:
       Type: AWS::SES::ReceiptRule
+      DeletionPolicy: Delete
       DependsOn:
         - SESReceiptRuleSet
         - S3EMailBucketPermissions
